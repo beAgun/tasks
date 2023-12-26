@@ -2,9 +2,6 @@ import os.path
 import time
 import datetime
 import csv
-from pprint import pprint
-import requests
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
