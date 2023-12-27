@@ -165,7 +165,7 @@ def main():
         print('Incorrect format')
         return
 
-    if os.path.exists(f'/{file_name}.txt'):
+    if os.path.exists(f'{file_name}.txt'):
         os.remove(f'{file_name}.txt')
         return
 
