@@ -67,13 +67,15 @@ def find_data(url, date, file_name):
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
 
+    max_page_number = 1064
+
     try:
 
         def rec(page_number, file, visited_first_dates=None):
             if visited_first_dates is None:
                 visited_first_dates = []
             while True:
-                if page_number > 1064:
+                if page_number > max_page_number:
                     print('That was a long time ago...')
                     return
                 new_url = url + '/page/' + str(page_number)
