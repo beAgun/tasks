@@ -102,7 +102,7 @@ def find_data(url, date, file_name):
                     if ans == 0:
                         break
 
-                    if date_first.date() == date.date():
+                    if date_first.date() == date.date() and date.date() != cur_date.date()::
                         rec(page_number - 1, file, visited_first_dates)
 
                     if date_last.date() == date.date():
