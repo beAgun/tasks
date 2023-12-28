@@ -165,9 +165,8 @@ def main():
         print('Incorrect format')
         return
 
-    if os.path.exists(f'{file_name}.txt'):
-        os.remove(f'{file_name}.txt')
-        return
+    if os.path.exists(f'{file_name}.csv'):
+        os.remove(f'{file_name}.csv')
 
     find_data(
         url='https://naked-science.ru/article', date=date, file_name=f'{file_name}.txt')
