@@ -77,44 +77,6 @@ def find_data(url, date, file):
     last_page_number = int(elements[-1].text.replace(' ', ''))
     first_page_number = 0
 
-    # def rec(first_page_number, last_page_number, visited=None):
-    #     if visited is None:
-    #         visited = []
-    #     print(first_page_number, last_page_number,  type(first_page_number), type(last_page_number))
-    #     page_number = floor((first_page_number + last_page_number) / 2)
-    #
-    #     if page_number in visited:
-    #         return
-    #     visited += [page_number]
-    #
-    #     new_url = url + '/page/' + str(page_number)
-    #     driver.get(url=new_url)
-    #     time.sleep(3)
-    #
-    #     xpath = '//div[@class="news-item grid"]'
-    #     elements = driver.find_elements(By.XPATH, xpath)
-    #
-    #     element_first, element_last = elements[0], elements[-1]
-    #     date_first, date_last = get_date(driver, element_first), get_date(driver, element_last)
-    #
-    #     if date_first.date() >= date.date() >= date_last.date():
-    #         if not collect_data(file, elements, date, driver):
-    #             return
-    #
-    #         if date_first.date() == date.date() != cur_date.date():
-    #             rec(page_number - 1,  file, visited)
-    #
-    #         if date_last.date() == date.date():
-    #             rec(page_number + 1, file, visited)
-    #
-    #     elif date.date() < date_first.date():
-    #         rec(page_number + 1, last_page_number, visited)
-    #
-    #     elif date.date() > date_last.date() and date.date() != cur_date.date():
-    #         rec(first_page_number, page_number - 1, visited)
-    #
-    # rec(1, last_page_number, None)
-
     try:
         def rec(page_number, file, visited=None):
             if visited is None:
@@ -130,8 +92,6 @@ def find_data(url, date, file):
                 time.sleep(3)
 
                 xpath = '//div[@class="news-item grid"]'
-                # "//div[@class = 'content']//span[contains(concat(' ', normalize-space(@class), ' '), 'echo_date')]"
-                # '//div[@class = "content"]//span[@class = "echo_date"]'
                 elements = driver.find_elements(By.XPATH, xpath)
 
                 element_first, element_last = elements[0], elements[-1]
