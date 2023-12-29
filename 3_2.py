@@ -2,6 +2,9 @@ import os.path
 import time
 import datetime
 import csv
+from math import floor
+import random
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
@@ -46,11 +49,11 @@ def collect_data(file, elements, date, driver):
             add_item(date_element, element)
             cnt += 1
 
-    if cnt == 0:
-        return 0
+    if cnt:
+        return 1
 
 
-def find_data(url, date, file_name):
+def find_data(url, date, file):
 
     cur_date = datetime.datetime.now()
     dif_days = (cur_date - date).days
@@ -67,17 +70,61 @@ def find_data(url, date, file_name):
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
 
-    max_page_number = 1064
+
+    driver.get(url)
+    time.sleep(3)
+    xpath = '//div[@class="pagination-block"]//a[@class="page-numbers"]'
+    elements = driver.find_elements(By.XPATH, xpath)
+    last_page_number = int(elements[-1].text.replace(' ', ''))
+
+    # def rec(first_page_number, last_page_number, visited=None):
+    #     if visited is None:
+    #         visited = []
+    #     print(first_page_number, last_page_number,  type(first_page_number), type(last_page_number))
+    #     page_number = floor((first_page_number + last_page_number) / 2)
+    #
+    #     if page_number in visited:
+    #         return
+    #     visited += [page_number]
+    #
+    #     new_url = url + '/page/' + str(page_number)
+    #     driver.get(url=new_url)
+    #     time.sleep(3)
+    #
+    #     xpath = '//div[@class="news-item grid"]'
+    #     elements = driver.find_elements(By.XPATH, xpath)
+    #
+    #     element_first, element_last = elements[0], elements[-1]
+    #     date_first, date_last = get_date(driver, element_first), get_date(driver, element_last)
+    #
+    #     if date_first.date() >= date.date() >= date_last.date():
+    #         if not collect_data(file, elements, date, driver):
+    #             return
+    #
+    #         if date_first.date() == date.date() != cur_date.date():
+    #             rec(page_number - 1,  file, visited)
+    #
+    #         if date_last.date() == date.date():
+    #             rec(page_number + 1, file, visited)
+    #
+    #     elif date.date() < date_first.date():
+    #         rec(page_number + 1, last_page_number, visited)
+    #
+    #     elif date.date() > date_last.date() and date.date() != cur_date.date():
+    #         rec(first_page_number, page_number - 1, visited)
+    #
+    # rec(1, last_page_number, None)
 
     try:
-
-        def rec(page_number, file, visited_first_dates=None):
-            if visited_first_dates is None:
-                visited_first_dates = []
+        def rec(page_number, file, visited=None):
+            if visited is None:
+                visited = []
             while True:
-                if page_number > max_page_number:
-                    print('That was a long time ago...')
-                    return
+
+                if page_number in visited:
+                    break
+                visited += [page_number]
+
                 new_url = url + '/page/' + str(page_number)
                 driver.get(url=new_url)
                 time.sleep(3)
@@ -87,44 +134,47 @@ def find_data(url, date, file_name):
                 # '//div[@class = "content"]//span[@class = "echo_date"]'
                 elements = driver.find_elements(By.XPATH, xpath)
 
+                if not elements:
+                    return
+
                 element_first = elements[0]
                 element_last = elements[-1]
                 date_first = get_date(driver, element_first)
                 date_last = get_date(driver, element_last)
-
-                if (date_first, date_last) in visited_first_dates:
-                    break
-                else:
-                    visited_first_dates += [(date_first, date_last)]
 
                 if date_first.date() >= date.date() >= date_last.date():
                     ans = collect_data(file, elements, date, driver)
                     if ans == 0:
                         break
 
-                    if date_first.date() == date.date() and date.date() != cur_date.date()::
-                        rec(page_number - 1, file, visited_first_dates)
+                    if date_first.date() == date.date() != cur_date.date():
+                        rec(page_number - 1, file, visited)
 
                     if date_last.date() == date.date():
-                        rec(page_number + 1, file, visited_first_dates)
+                        rec(min(page_number + 1, last_page_number), file, visited)
 
                     break
 
                 elif date.date() < date_first.date():
+                    if page_number == last_page_number:
+                        print('That was a long time ago')
+                        return
+
                     res = int((date_first - date).days // magic_number)
                     if res < 2:
-                        page_number += 1
+                        page_number += min(page_number + 1, last_page_number)
                     else:
-                        page_number += res
-                elif date.date() > date_last.date():
+                        page_number = min(page_number + res, last_page_number)
+
+                elif date.date() > date_last.date() and date.date() != cur_date.date():
                     res = int((date - date_last).days // magic_number)
                     if res < 2:
                         page_number -= 1
                     else:
                         page_number -= res
 
-        page_number = int(dif_days // 2.5)
-        rec(page_number, file_name, None)
+        page_number = int(dif_days // magic_number)
+        rec(page_number, file, None)
 
     except Exception as _ex:
         print(_ex)
@@ -154,7 +204,7 @@ def reformat(file_name):
 
 
 def main():
-    date = '2023-03-25'
+    #date = '2023-03-25'
 
     date = input('Input a date to find science news. Format: YYYY-M-D: ')
     file_name = ''
@@ -166,10 +216,11 @@ def main():
         return
 
     if os.path.exists(f'{file_name}.csv'):
-        os.remove(f'{file_name}.csv')
-
+        file_name += '-2'
+        #os.remove(f'{file_name}.csv')
+    print(file_name)
     find_data(
-        url='https://naked-science.ru/article', date=date, file_name=f'{file_name}.txt')
+        url='https://naked-science.ru/article', date=date, file=f'{file_name}.txt')
 
     if not os.path.exists(f'{file_name}.txt'):
         print('Nothing found')
