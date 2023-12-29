@@ -70,12 +70,12 @@ def find_data(url, date, file):
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
 
-
     driver.get(url)
     time.sleep(3)
     xpath = '//div[@class="pagination-block"]//a[@class="page-numbers"]'
     elements = driver.find_elements(By.XPATH, xpath)
     last_page_number = int(elements[-1].text.replace(' ', ''))
+    first_page_number = 0
 
     # def rec(first_page_number, last_page_number, visited=None):
     #     if visited is None:
@@ -119,8 +119,8 @@ def find_data(url, date, file):
         def rec(page_number, file, visited=None):
             if visited is None:
                 visited = []
-            while True:
 
+            while True:
                 if page_number in visited:
                     break
                 visited += [page_number]
@@ -134,46 +134,40 @@ def find_data(url, date, file):
                 # '//div[@class = "content"]//span[@class = "echo_date"]'
                 elements = driver.find_elements(By.XPATH, xpath)
 
-                if not elements:
-                    return
-
-                element_first = elements[0]
-                element_last = elements[-1]
-                date_first = get_date(driver, element_first)
-                date_last = get_date(driver, element_last)
+                element_first, element_last = elements[0], elements[-1]
+                date_first, date_last = get_date(driver, element_first), get_date(driver, element_last)
 
                 if date_first.date() >= date.date() >= date_last.date():
-                    ans = collect_data(file, elements, date, driver)
-                    if ans == 0:
+                    if not collect_data(file, elements, date, driver):
                         break
 
                     if date_first.date() == date.date() != cur_date.date():
-                        rec(page_number - 1, file, visited)
+                        rec(max(first_page_number, page_number - 1), file, visited)
 
                     if date_last.date() == date.date():
                         rec(min(page_number + 1, last_page_number), file, visited)
 
                     break
 
-                elif date.date() < date_first.date():
+                elif date.date() < date_last.date():
                     if page_number == last_page_number:
                         print('That was a long time ago')
                         return
 
-                    res = int((date_first - date).days // magic_number)
+                    res = int((date_last - date).days // magic_number)
                     if res < 2:
                         page_number += min(page_number + 1, last_page_number)
                     else:
                         page_number = min(page_number + res, last_page_number)
 
-                elif date.date() > date_last.date() and date.date() != cur_date.date():
-                    res = int((date - date_last).days // magic_number)
+                elif date.date() > date_first.date() and date.date() != cur_date.date():
+                    res = int((date - date_first).days // magic_number)
                     if res < 2:
-                        page_number -= 1
+                        page_number = max(first_page_number, page_number - 1)
                     else:
-                        page_number -= res
+                        page_number = max(first_page_number, page_number - res)
 
-        page_number = int(dif_days // magic_number)
+        page_number = min(int(dif_days // magic_number), last_page_number)
         rec(page_number, file, None)
 
     except Exception as _ex:
