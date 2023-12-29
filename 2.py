@@ -11,8 +11,6 @@ def convert_to_roman(n):
     ans = ''
     for i, digit in enumerate(reversed(digits)):
         i = 2*i
-        if digit == 0 and i == 0:
-            continue
         if digit < 5 - 1:
             ans = roman_symbols[i] * digit + ans
         elif digit == 4:
