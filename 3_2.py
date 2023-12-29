@@ -170,9 +170,8 @@ def main():
         return
 
     if os.path.exists(f'{file_name}.csv'):
-        file_name += '-2'
-        #os.remove(f'{file_name}.csv')
-    print(file_name)
+        os.remove(f'{file_name}.csv')
+    
     find_data(
         url='https://naked-science.ru/article', date=date, file=f'{file_name}.txt')
 
